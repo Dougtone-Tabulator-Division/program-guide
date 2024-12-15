@@ -1,0 +1,14 @@
+# Keno channel; in some casino hotels, there is a channel that shows the
+# results of Keno games played in the restaurants.
+
+defaultChannel: 80
+
+channels:
+
+- number: 80
+  name: Keno
+  abbr: KENO
+  keno:
+    drawingMinutes: 1 # defaults to 5; draw numbers every x minutes, starting at 12 AM and continuing until the channel is reloaded
+    drawIntervalMs: 800 # defaults to 1000; how long to wait between drawing each number
+    centerText: Greenhill Plaza Grand Hotel # optional; text to display in the center of the screen

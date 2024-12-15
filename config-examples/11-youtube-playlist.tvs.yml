@@ -1,0 +1,7 @@
+defaultChannel: 3
+
+channels:
+- number: 3
+  name: Welcome
+  abbr: WELCOME
+  youtube-playlist: PLU1WjbywtZxHbh0v_dZ0-b30BAkSCZ5mT

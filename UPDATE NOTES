@@ -1,0 +1,395 @@
+Update Notes - 12-02-2024 (4.1.0)
+
+* Added ability to disable the on-screen display entirely, or parts of it.
+
+~~~yml
+osd: false # You can disable the on-screen displays entirely by setting this to false.
+~~~
+
+~~~yml
+# You can also disable parts of the OSD individually. The following options are available:
+osd:
+  tuner: false # You can disable the tuner OSD by setting this to false.
+  info: false # You can disable the info OSD by setting this to false.
+  receiver: false # You can disable the receiver OSD by setting this to false.
+~~~
+
+Update Notes - 11-23-2024 (4.0.1)
+
+* Fixed zoom bug on small window sizes introduced in previous update.
+* Beginning to update TVS's versions to use semantic versioning so that they show up correctly in GitHub releases and make it easier on users to tell when breaking changes occur.
+
+Update Notes - 11-21-2024 (4.0.0)
+
+* Breaking change: guide alerts are attached to specific channels now; if you have a channel alert on channel 1 for instance but don't have a channel 1 in the lineup it won't be shown.
+* Rewrote and restructured large parts of the Guide engine to support multiple themes. Two are supported as of this release: the default one and "1989", a classic single-slot guide in the style of the EPG (https://prevueguide.com/wiki/EPG_Sr.)
+* Added the ability to filter guides by channel ranges.
+* Modified the external listings data structure (TVSL JSON) to allow for more precise listings; listings are now measured by width in minutes and are not rounded down to the nearest timeslot anymore. Listings can fluidly span between guide timeslots in the default theme, and are displayed in a list in the 1989 guide separated by time. There's an example program available here that converts XMLTV to TVSL JSON: https://github.com/zshall/TelevisionSimulatorGuideData
+* Added multiple guide examples to the default config file demonstrating custom colors and external listings (if you have a TVSL JSON file to parse).
+* Changed the way that guide scrolling works to be more accurate; timeslot headers stick to the top of the guide until a new header replaces them.
+* Changed the way that auto-scaling works to use `zoom` CSS instead of `transform` to mitigate bugs when scrolling.
+
+~~~yml
+- number: 170
+  name: Guide 1989 full example
+  noiseBlendMode: multiply
+  guide:
+    theme: 1989
+    themeOptions: # Some themes have extra settings that can only be applied in these themes.
+      title: Cable TV Guide # Optional. A title to show at the top of the guide
+      ticker: # Optional. A scrolling text bar at the bottom of the guide. Put a list of messages you want shown here.
+      - "Hypercom cable - connecting you to the future"
+      - "Pay-Per-View Movies - Ch 1 - Straight from Hollywood to your home, anytime!"
+    channelRange:
+      min: 1 # Optional. The channel to start the guide with. No channels will be displayed with a lower number than this if specified.
+      max: 100 # Optional. The channel to end the guide with (inclusive). No channels will be displayed with a higher number than this if specified.
+~~~
+
+Update Notes - 10-17-2024
+
+* Added `feed-reader` engine. This component will load an RSS feed and display articles one at a time. Articles should have a title and content.
+* Added `color` engine. You can display a plain background with either a solid color or a CSS gradient.
+* Added a new `mix` layout. You can use it to superimpose one component on top of another full-screen using any CSS mix mode and also vary transparency of either component (from `0.0` to `1.0`)
+
+Here's a simple example of the feed reader:
+
+~~~yml
+- number: 33
+  name: Local News
+  abbr: NEWS
+  feed-reader: /placeholders/news.rss
+~~~
+
+A full example is in the `config.tvs.yml` demo file. There are a few new examples in there, including layouts and colors.
+
+To make the RSS feed load properly make sure the server is sending it with CORS headers. If it isn't, you may need a locally hosted proxy such as [cors-everywhere](https://github.com/Rob--W/cors-anywhere).
+
+Update Notes - 9-25-2024
+
+Hotfix to address bug surfaced in newest Chromium version (129) related to overflow. TV screen is now `overflow: hidden`.
+
+Update Notes - 9-21-2024
+
+* Added custom key remapping. You can now reassign keys to any button or combination of buttons supported by the browser.
+
+Here's an example of how this works:
+
+~~~yml
+inputMapping: # Optional. You can override the default keyboard commands here.
+  volumeUp: q # For any key you override, the default key will be unassigned.
+  volumeDown: a # The combos supported should be in lower-case; the keys supported can be found at https://github.com/madrobby/keymaster?tab=readme-ov-file#supported-keys
+  power: shift+p, enter # Using + will require multiple keys to be pressed at the same time. Using , will assign multiple combos to the same function.
+  # Important: the browser may have some reserved key combos that can't be overridden. If you're having trouble with a key combo, try another one.
+~~~
+
+The commands available to override are:
+
+* `0`
+* `1`
+* `2`
+* `3`
+* `4`
+* `5`
+* `6`
+* `7`
+* `8`
+* `9`
+* `channelDown`
+* `channelUp`
+* `help`
+* `info`
+* `mute`
+* `power`
+* `resetPicture`
+* `scaleDownX`
+* `scaleDownY`
+* `scaleUpX`
+* `scaleUpY`
+* `setup`
+* `toggleAutoScale`
+* `toggleBezels`
+* `toggleBezelType`
+* `toggleBlur`
+* `toggleChangeChannelNoise`
+* `toggleClosedCaptions`
+* `toggleNoise`
+* `toggleOSD`
+* `toggleRemotePairingCode`
+* `toggleScanlines`
+* `toggleShadowMask`
+* `toggleShadowMaskType`
+* `version`
+* `volumeDown`
+* `volumeUp`
+
+Update Notes - 9-15-2024
+
+* PLS playlist file support added in `backgroundAudio` engine for tracks accessible via the web. An example playlist is provided in the placeholders directory.
+* PLS files will provide info about what's now playing to the audio info engine.
+* If you're using IIS on Windows to host the files, a new MIME type was added to the `web.config` file included for this purpose.
+
+Here's the playlist example:
+
+~~~yml
+- number: 53
+  name: Playlist Example
+  abbr: PLS
+  image: placeholders/channel-53.png
+  backgroundAudio: placeholders/playlist-example.pls # You can use a playlist file to play audio. This can be a local file or a remote one but the contents need to be accessible via the web. Currently only PLS files are supported.
+  backgroundAudioOptions:
+    shufflePlaylist: true # Optional. If you want to shuffle the playlist set this to true. Only has an effect if a playlist file is used.
+~~~
+
+Update Notes - 9-9-2024
+
+* Added custom color support for the Guide engine.
+* `guide` can have the following new options:
+
+~~~yml
+      guide: # Program guides read the current channel lineup to reconstruct listings based off channel numbers, title and description. https://greenhillplaza.notion.site/Program-Guides-46e80919a3754efa9769f74dd00946fe?pvs=4
+        primaryColor: white # The primary color of the guide; this is used for the default background color of guide cells
+        secondaryColor: blue # The secondary color of the guide; this is used for the text color of headers and channel numbers
+        textColor: black # The text color of the guide; this is used for the text color of guide cells
+~~~
+
+* Refactored the color scheme library to be accessible for more purposes.
+
+Update Notes - 9-7-2024
+
+* Power-off and power-on effects have been added; to disable, use `warmup: false` in the config file.
+* To change the length of the warmup effect, set `warmup` to a number in seconds.
+* Fixed more teardown code.
+
+It looks like my bug report for Vidstack is being worked on, the workaround code will be able to be removed when that's done which should improve stability.
+
+Update Notes - 8-31-2024
+
+# Breaking changes
+
+* Vidstack is now the default video provider. To use the deprecated Vime video provider use `video@1` instead of `video`.
+
+# Bug fixes
+
+* To that end, the Vidstack provider has been cleaned up and a bug involving loading incorrect URLs with YouTube and Vimeo was fixed.
+
+Please report any bugs you encounter using Vidstack since Vime will be removed at some point.
+
+Update Notes - 8-29-2024
+
+### New Features
+
+* Background Audio Interrupts are now available.
+
+~~~yml
+      - video:
+          src: https://www.youtube.com/watch?v=OlfL5TWWBtg
+          interruptsBackgroundAudio: true # While any piece of content designated as interrupting background audio is on-screen, the background audio will be paused.
+~~~
+
+### Opt-In
+
+* Experimental new video engine is available using [Vidstack](https://www.vidstack.io/) instead of Vime. To use it change `video` components to `video@2`, like so:
+
+~~~yml
+  - video@2:
+      provider: youtube
+      src: OlfL5TWWBtg
+~~~
+
+* **Vidstack will replace Vime** as the default engine in the future, but I haven't tested it enough yet.
+* Sunsetting Vime will occur in 3 stages:
+	* Opt-in (currently as of 8-29-2024)
+	* Opt-out (switch back to `video`, `video@1` and `video@2` will be deprecated)
+	* `video@1` and `video@2` aliases will be removed, Vime will be removed and Vidstack will power `video` engine.
+* Dailymotion support is unavailable in Vidstack.
+
+### Bug fixes and enhancements:
+
+* Fixed some autoScale problems from yesterday regarding state changes when `autoScale` is set to false in the config file and hasn't been manually set yet.
+* Added autoScale and a description of it to the `/setup` page.
+* Added more agressive teardown code to combat a bug that continues to evade me regarding nested content: https://github.com/sveltejs/svelte/issues/5268
+* Press `V` to see version information.
+* Custom mouse cursor
+
+Update Notes - 8-28-2024
+
+A few quality of life improvements today:
+
+* Added full-screen toggle button to the touch menu. Long-press or click and hold on the TV to toggle this menu!
+* Added status messages on all picture adjustments; when pressing a picture adjustment shortcut you'll get a status update on what you changed.
+* AutoScale has a manual override toggle: Alt + 7
+
+Update Notes - 8-24-2024
+
+Today's update is all about improved stability.
+
+* Config examples have been updated to allow running in a subdirectory. It's finally possible!
+* If you have an existing config file and want to convert it to run in a subdirectory, remove the leading slash from local content. `/placeholders/...` should just be `placeholders/...` for instance.
+* Example files have a new parameter called `baseDirectory` which is only really useful for loading them from the `/examples` page. You likely won't need this parameter in your main `config.tvs.yml` file.
+* YouTube videos were not respecting volume controls and now mute themselves now if the volume is set to 0.
+* `autoScale` wasn't working properly as when set to false it would still resize due to how config files were loaded. Those problems are fixed now.
+* About page now shows the TVS logo.
+
+Update Notes - 8-20-2024
+
+* Added a [Docker image](https://hub.docker.com/r/zshall/television-simulator) for easier deployment.
+* Added info button components - press `I` to open the info screen.
+* Currently supported audio info providers are Icecast, Azuracast and a custom one for Nightwave Plaza. Let me know in the chat room if there's any other providers you'd like to see added!
+* To make use of audio info you'll need to at minimum add the following background audio options:
+
+~~~yml
+  backgroundAudio: http://radio.plaza.one/mp3
+  backgroundAudioOptions:
+    description: Nightwave Plaza Radio # Optional. Credits will appear in the Info OSD
+    nowPlayingUrl: https://api.plaza.one/status # Optional. If the radio service you're using has a song history API you can link to it here.
+    nowPlayingProvider: plaza-one # Required if using nowPlayingUrl. Only a few providers are supported right now; see the documentation for more info.
+~~~
+
+~~~yml
+  backgroundAudio: http://icecast.example.com/radio.mp3
+  backgroundAudioOptions:
+    description: Icecast example
+    nowPlayingUrl: http://icecast.example.com/status-json.xsl
+    nowPlayingProvider: icecast
+~~~
+
+~~~yml
+  backgroundAudio: https://azuracast.example.com/listen/station_name/radio.mp3
+  backgroundAudioOptions:
+    description: Station Name
+    nowPlayingUrl: https://azuracast.example.com/api/nowplaying_static/station_name.json
+    nowPlayingProvider: azuracast
+~~~
+
+Update Notes - 8-11-2024
+
+* Fixed audio bug where channel changes that use same background audio source wouldn't be reloaded.
+* Updated audio system with new granular controls: in Generator, Keno, Video, Visualizer, and YouTube Playlist engines you can set a `volume` parameter to a number between 0 and 1, or set it to false. Here's an example:
+
+~~~yml
+  video:
+    volume: false # You can mute the video entirely if you want.
+    provider: ...
+    src: ...
+~~~
+
+* `BackgroundAudioOptions` section was added with new optional features for filtering, adjusting volume and adding white noise to the audio:
+
+~~~yml
+  backgroundAudio: ...
+  backgroundAudioOptions:
+    volume: 0.9 # You can adjust the volume of the background audio per-channel
+    # corsMitigation: true # If you're hosting the app on a server that doesn't support CORS you can enable this to disable audio processing. The filter effects won't work but the audio should play (if CORS is the issue)
+    filterType: highpass # You can apply a filter to the audio; values are lowpass, highpass, bandpass, lowshelf, highshelf, peaking, notch, allpass
+    filterFrequency: 1000 # The frequency of the filter in Hz
+    # noise: 0.08 # You can add white noise to the audio too
+~~~
+
+* Made a race condition bug in the video game engine less likely by destroying the component when it finishes loading if channel is changed while it loads.
+
+* Added new Bouncing Logo engine which loads an image that bounces around the screen, changing its color whenever it hits the screen. The image should be transparent and a single color for the effect to look right.
+
+~~~yml
+- number: -2
+  name: DVD Player
+  bouncing-logo: https://upload.wikimedia.org/wikipedia/commons/e/e7/DVD-Video_Logo.svg # The bouncing-logo engine allows you to display an image that bounces around the screen in the style of a DVD logo screensaver.
+~~~
+
+
+Update Notes - 7-27-2024
+
+* Added another placeholder background music track
+* Basic text is refreshed from data source when the last page is reached before going back to the first page
+* Fixed bug where local audio wouldn't loop
+* Fixed but with HLS live streaming in Safari
+* Fixed signaling issues with Slideshow engine
+* Custom OSD color extends to remote pairing screen
+* Support added for local and custom PeerJS servers
+* Added touch gesture support using HammerJS
+* Added some new configuration examples
+* Added kiosk mode to disable certain features and an example configuration file
+
+Update Notes - 7-08-2024
+
+* Added screen bevels; 2 different types are present by default. They can be enabled or disabled using "alt + 6" and the type can be changed with "shift + alt + 6". You can also default this type via the config file:
+
+bezel: flat
+# or
+bezel: cylindrical
+
+* Fixed the help page to add some missed keyboard shortcuts.
+* Started the process of reorganizing resources so that eventually TVS will be able to run from a subdirectory.
+
+Update Notes - 7-07-2024
+
+* Added Vimeo and Dailymotion provider support
+* You no longer need to specify providers in many cases for videos; simply linking to a YouTube video or Dailymotion or Vimeo will detect the video ID.
+
+Update Notes - 7-02-2024
+
+* Press F1 to view keyboard shortcuts; the close button in the window title bar will take you back to the TV or you can press back on your browser.
+* Number keys on the numpad can be used to change channels as well as the number keys at the top of your keyboard now. The Keymaster library providing shortcuts was updated to a fork with extended functionality.
+* Added Video Game engine that supports NES, SNES, Genesis and Game Boy emulation using Nostalgist.js; there's an example at the bottom of the provided config file.
+* Line inputs (defined by negative channel numbers) are now hidden from the channel guide.
+
+Update Notes - 6-20-2024
+
+* Fixed off-air channel display in guide
+* Added digital cable box theme for receiver
+* Removed fade transitions from default OSD theme
+* Added new background music to placeholders directory and beta welcome image
+
+Update Notes - 5-16-2024
+
+* Added digital cable box theme for tuner. Coming soon is a digital receiver theme.
+
+To use the digital tuner here's an example:
+
+osd:
+  tuner:
+    theme: digital
+
+Update Notes - 5-13-2024
+
+* Ability to override specific OSD components. Example:
+
+osd:
+  # default settings
+  primaryColor: "#00FFFC"
+  accentColor: "#F600FF"
+  tuner: # tuner-specific overrides
+    primaryColor: red
+    accentColor: black
+  receiver: # receiver-specific overrides
+    primaryColor: "#36FF00"
+    accentColor: black
+
+Update Notes - 5-12-2024
+
+* Added ability to change On-Screen Display colors in the configuration file. Here's an example:
+
+osd:
+  primaryColor: "#00FFFC"
+  accentColor: "#F600FF"
+
+Update Notes - 5-11-2024
+
+* Made the white noise on channel change less harsh.
+* Added split layout example configurations to match the documentation.
+* Added basic text advertisement example as well as default setting support (data structure not yet finalized)
+
+Update Notes - 5-10-2024
+
+Added white noise generator to play when TV has no signal, also added optional white noise to play whenever changing channels. Use keyboard shortcut `alt+5` to enable or disable this effect, or set `changeChannelNoise: false` in the top level of your configuration file.
+
+Fixed bug where background audio volume wasn't updating when we adjust volume.
+
+Update Notes - 5-09-2024
+
+H-Split and V-Split layouts added. Each one has two properties: A and B. Guide layout has been updated to make use of this by default. Should allow greater flexibility in designing channels, but you will need to update your guide to remove the `upperContent` section! This is ignored in this new build. There's an example under `config-examples/03-guide.tvs.yml`  that shows it in detail.
+
+Remote has been updated to look better and includes numeric buttons. A known issue I'm looking into is the rate limiting I've seen from PeerJS and the disconnection events. This may only be solved if I set up a new negotiation server but we'll see.
+
+Added a new `applicationTitle` parameter that allows you to change the title of the page in configuration after it loads.
+
+Contact me on Slack or through other channels if you want to talk about anything related to TVS. Thank you again for helping me test!
